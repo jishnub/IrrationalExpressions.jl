@@ -1,5 +1,5 @@
 using IrrationalExpressions
-using Base.Test
+using Test
 
 @test BigFloat(-π) == -BigFloat(π)
 @test BigFloat(-(-π)) == BigFloat(π)

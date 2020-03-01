@@ -1,7 +1,8 @@
 # IrrationalExpressions.jl
 
-[![Build Status](https://travis-ci.org/perrutquist/IrrationalExpressions.jl.svg?branch=master)](https://travis-ci.org/perrutquist/IrrationalExpressions.jl)
-[![codecov.io](http://codecov.io/github/perrutquist/IrrationalExpressions.jl/coverage.svg?branch=master)](http://codecov.io/github/perrutquist/IrrationalExpressions.jl?branch=master)
+[![Build Status](https://travis-ci.com/jishnub/IrrationalExpressions.jl.svg?branch=master)](https://travis-ci.com/jishnub/IrrationalExpressions.jl)
+[![Coverage Status](https://coveralls.io/repos/github/jishnub/IrrationalExpressions.jl/badge.svg?branch=master)](https://coveralls.io/github/jishnub/IrrationalExpressions.jl?branch=master)
+[![codecov](https://codecov.io/gh/jishnub/IrrationalExpressions.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/jishnub/IrrationalExpressions.jl)
 
 IrrationalExpressions is a Julia module that makes expressions like `2π` behave as irrational numbers, rather than `Float64`.
 
@@ -23,13 +24,12 @@ Using the `IrrationalExpressions` module, arithmetic operations don't immediatel
 
 ```
 julia> using IrrationalExpressions
-<A bunch of warnings...>
 
 julia> -pi
 -π = -3.1415926535897...
 
 julia> BigFloat(π) + BigFloat(-π)
-0.000000000000000000000000000000000000000000000000000000000000000000000000000000
+0.0
 ```
 
 ## Supported Operations
@@ -49,7 +49,7 @@ julia> τ + BigFloat(0)
 6.283185307179586476925286766559005768394338798750211641949889184615632812572396
 ```
 
-Functions in `Base.Math` typically convert to `Float64` when encountering an unknown subtype of `Real`. They will work as usual.
+Functions in `Base` typically convert to `Float64` when encountering an unknown subtype of `Real`. They will work as usual.
 
 ```
 julia> cos(2π)
@@ -72,7 +72,7 @@ Any subtype of `AbstractFloat` that has conversions from `Integer`, `Rational` a
 Because this is a quick hack, there's no simplification, or elimination of common subexpressions.
 If irrational expressions are inadvertently created in a loop, they can grow exponentially
 ```
-julia> a = π; for i=1:5; a = a-a/3; end; a
+julia> a = π; for i=1:5; global a = a-a/3; end; a
 ((((π - π / 3) - (π - π / 3) / 3) - ((π - π / 3) - (π - π / 3) / 3) / 3) - (((π - π / 3) - (π - π / 3) / 3) - ((π - π / 3) - (π - π / 3) / 3) / 3) / 3) - ((((π - π / 3) - (π - π / 3) / 3) - ((π - π / 3) - (π - π / 3) / 3) / 3) - (((π - π / 3) - (π - π / 3) / 3) - ((π - π / 3) - (π - π / 3) / 3) / 3) / 3) / 3 = 0.41370767454680...
 ```
 (The work-around is to convert to the desired floating-point type before entering the loop.)
@@ -82,8 +82,3 @@ julia> a = π; for i=1:5; a = a-a/3; end; a
 * There needs to be some way to keep expressions from blowing up in a loop. At minimum, the size should be tracked, and an error thrown at some point.
 * It would be possible to extend this to things like `sqrt(Integer)`, `Integer^Rational`, etc.
 * Support for complex-valued irrational expressions, like `pi * im` is still missing.
-
-## Note
-
-Loading this module will generate a number of warnings about methods being overwritten.
-It would be nice to be able to turn these warnings off. See https://github.com/JuliaLang/julia/pull/14759

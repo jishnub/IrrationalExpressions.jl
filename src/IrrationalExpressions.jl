@@ -14,15 +14,15 @@ module IrrationalExpressions
 
 import Base: +, -, *, /, convert, promote_rule, show
 
-immutable IrrationalExpr{op, N} <: Real
+struct IrrationalExpr{op, N} <: Real
   args::NTuple{N,Union{IrrationalExpr, Irrational, Rational, Integer}}
 end
 
-@generated convert{T<:AbstractFloat,op,N}(::Type{T}, x::IrrationalExpr{op,N}) =
+@generated convert(::Type{T}, x::IrrationalExpr{op,N}) where {T<:AbstractFloat,op,N} =
   Expr(:call, op, [Expr(:call, :convert, T, :( x.args[$i] )) for i=1:N]...)
 
-promote_rule{T1<:AbstractFloat, T2<:IrrationalExpr}(::Type{T1}, ::Type{T2}) = T1
-promote_rule{T2<:IrrationalExpr}(::Type{BigFloat}, ::Type{T2}) = BigFloat
+promote_rule(::Type{T1}, ::Type{T2}) where {T1<:AbstractFloat, T2<:IrrationalExpr}= T1
+promote_rule(::Type{BigFloat}, ::Type{T2}) where {T2<:IrrationalExpr} = BigFloat
 
 ## Unary operators
 (+)(x::IrrationalExpr) = x
@@ -41,9 +41,15 @@ end
 # We define expr() as a conveninent middle step to get to strings,
 # but this also allows eval(expr(x)) as a roundabout way to get x.
 expr(x) = x
-expr{sym}(::Irrational{sym}) = sym
-expr{op,N}(x::IrrationalExpr{op,N}) = Expr(:call, op, map(expr,x.args)...)
+expr(::Irrational{sym}) where {sym} = sym
+expr(x::IrrationalExpr{op,N}) where {op,N} = Expr(:call, op, map(expr,x.args)...)
 
-show(io::IO, x::IrrationalExpr) = print(io, string(expr(x)), " = ", string(Float64(x))[1:end-2], "...")
+show(io::IO, x::IrrationalExpr) = print(io, string(expr(x)), " = ", string(convert(Float64,x))[1:end-2], "...")
+
+for T in (:AbstractFloat,:BigFloat,:Float64,:Float32,:Float16)
+	eval(quote
+		Base.$T(x::IrrationalExpr) = convert($T,x)
+	end)
+end
 
 end # module
